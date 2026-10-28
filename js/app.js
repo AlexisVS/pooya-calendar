@@ -13,26 +13,23 @@ const RETURN_HOME_MS = 2 * 60_000;
 const IDLE_CURSOR_MS = 3_000;
 const CACHE_KEY = 'pooya-calendar.events';
 
-// Persian text, Gregorian calendar (same dates as Google Calendar), Latin digits.
-const LOCALE = 'fa-u-ca-gregory-nu-latn';
-
-// Keeps Latin fragments such as "?demo" or "https://" in reading order inside a right-to-left sentence.
-const ltr = (text) => `⁦${text}⁩`;
+// Dutch interface: Gregorian calendar, weeks starting on Monday.
+const LOCALE = 'nl-NL';
 
 const CONNECT_MESSAGES = {
   disconnected: '',
-  expired: 'اتصال به Google منقضی یا لغو شده است. برای ادامهٔ نمایش، دوباره وارد شوید.',
-  denied: 'ورود لغو شد. هر وقت خواستید می‌توانید دوباره امتحان کنید.',
-  scope: 'اجازهٔ دسترسی به رویدادهای تقویم داده نشد. دوباره وارد شوید و این اجازه را تیک بزنید.',
-  failed: 'ورود انجام نشد. دوباره تلاش کنید.',
-  config: `پیکربندی کامل نیست: clientId و clientSecret را در config.js وارد کنید (README.md را ببینید). برای پیش‌نمایش بدون حساب Google، ${ltr('?demo')} را به انتهای نشانی اضافه کنید.`,
-  insecure: `Google به نشانی امن نیاز دارد: برنامه را با ${ltr('https://')} یا روی ${ltr('http://localhost')} باز کنید.`,
+  expired: 'De verbinding met Google is verlopen of ingetrokken. Log opnieuw in om de agenda weer te tonen.',
+  denied: 'Inloggen geannuleerd. Je kunt het opnieuw proberen wanneer je wilt.',
+  scope: 'Er is geen toegang tot de afspraken in de agenda gegeven. Log opnieuw in en vink deze toestemming aan.',
+  failed: 'Inloggen is mislukt. Probeer het opnieuw.',
+  config: 'Configuratie onvolledig: vul clientId en clientSecret in config.js in (zie README.md). Voeg ?demo toe aan het adres voor een voorbeeld zonder Google-account.',
+  insecure: 'Google vereist een beveiligd adres: open de app via https:// of op http://localhost.',
 };
 const BLOCKING_REASONS = new Set(['config', 'insecure']);
 
 const fmt = {
   monthYear: new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric' }),
-  dayMonth: new Intl.DateTimeFormat(LOCALE, { day: 'numeric', month: 'long' }),
+  dayMonth: new Intl.DateTimeFormat(LOCALE, { day: 'numeric', month: 'short' }),
   time: new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit' }),
 };
 
@@ -87,6 +84,10 @@ function esc(text) {
   return String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 }
 
+function capitalize(text) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 const time = (date) => fmt.time.format(date);
 
 // ---------------------------------------------------------------- rendering
@@ -100,7 +101,7 @@ function render(now = new Date()) {
 
 function renderHeader(now) {
   els.badge.textContent = now.getDate();
-  els.title.textContent = fmt.monthYear.format(new Date(state.view.year, state.view.month, 1));
+  els.title.textContent = capitalize(fmt.monthYear.format(new Date(state.view.year, state.view.month, 1)));
   els.clock.textContent = time(now);
 }
 
@@ -125,7 +126,7 @@ function dayHtml(day, events, maxChips) {
   return `<div class="${classes}">
     <span class="day__num">${esc(label)}</span>
     ${shown.map((event) => chipHtml(event, day)).join('')}
-    ${hidden > 0 ? `<span class="day__more">${hidden} مورد دیگر</span>` : ''}
+    ${hidden > 0 ? `<span class="day__more">Nog ${hidden}</span>` : ''}
   </div>`;
 }
 
@@ -144,15 +145,15 @@ function renderStatus() {
   let text;
   let isError = false;
   if (isDemo) {
-    text = 'داده‌های نمایشی';
+    text = 'Demogegevens';
   } else if (state.error) {
     isError = true;
-    const since = state.lastSync ? `، داده‌های ساعت ${time(state.lastSync)}` : '';
-    text = state.error instanceof CalendarError ? `${state.error.message}${since}` : `آفلاین${since}`;
+    const since = state.lastSync ? `, gegevens van ${time(state.lastSync)}` : '';
+    text = state.error instanceof CalendarError ? `${state.error.message}${since}` : `Offline${since}`;
   } else if (state.lastSync) {
-    text = `آخرین به‌روزرسانی ${time(state.lastSync)}`;
+    text = `Bijgewerkt om ${time(state.lastSync)}`;
   } else {
-    text = 'در حال همگام‌سازی…';
+    text = 'Synchroniseren…';
   }
   els.status.textContent = text;
   els.status.classList.toggle('is-error', isError);
@@ -247,10 +248,7 @@ function goToMonth(view) {
 
 function onKeyDown(event) {
   if (!els.connect.hidden || event.altKey || event.ctrlKey || event.metaKey) return;
-  // Right to left, earlier months sit on the right: → goes back, ← goes forward.
-  const forward = document.dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
-  const back = document.dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft';
-  const delta = { [back]: -1, PageUp: -1, [forward]: 1, PageDown: 1 }[event.key];
+  const delta = { ArrowLeft: -1, PageUp: -1, ArrowRight: 1, PageDown: 1 }[event.key];
   if (delta) goToMonth(shiftMonth(state.view, delta));
   else if (['Home', 'Escape', 't', 'T'].includes(event.key)) goToMonth(monthOf(new Date()));
   else return;

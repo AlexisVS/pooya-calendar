@@ -1,5 +1,5 @@
 // Reads events through the Google Calendar API v3 (called directly from the browser).
-// Error messages are shown on screen, so they are in Persian.
+// Error messages are shown on screen, so they are in Dutch.
 
 import { parseDateKey } from './calendar.js';
 
@@ -20,7 +20,7 @@ export function normalizeEvent(item) {
   const allDay = Boolean(item.start.date);
   return {
     id: item.id,
-    title: item.summary?.trim() || '(بدون عنوان)',
+    title: item.summary?.trim() || '(Geen titel)',
     allDay,
     start: allDay ? parseDateKey(item.start.date) : new Date(item.start.dateTime),
     end: allDay ? parseDateKey(item.end.date) : new Date(item.end.dateTime),
@@ -71,16 +71,16 @@ async function toCalendarError(response) {
   const has = (...names) => names.some((name) => reasons.includes(name));
 
   if (response.status === 404) {
-    return new CalendarError('not-found', 'تقویم پیدا نشد: calendarId را در config.js بررسی کنید');
+    return new CalendarError('not-found', 'Agenda niet gevonden: controleer calendarId in config.js');
   }
   if (has('accessNotConfigured', 'SERVICE_DISABLED')) {
-    return new CalendarError('api-disabled', 'Google Calendar API در پروژهٔ Google Cloud فعال نیست');
+    return new CalendarError('api-disabled', 'De Google Calendar API is niet ingeschakeld in het Google Cloud-project');
   }
   if (has('insufficientPermissions', 'ACCESS_TOKEN_SCOPE_INSUFFICIENT')) {
-    return new CalendarError('scope', 'اجازهٔ دسترسی به رویدادها داده نشده است');
+    return new CalendarError('scope', 'Er is geen toegang tot de afspraken gegeven');
   }
   if (response.status === 429 || has('rateLimitExceeded', 'userRateLimitExceeded', 'RESOURCE_EXHAUSTED')) {
-    return new CalendarError('rate-limit', 'Google موقتاً درخواست‌ها را محدود کرده است؛ در نوبت بعد دوباره تلاش می‌شود');
+    return new CalendarError('rate-limit', 'Google beperkt tijdelijk het aantal verzoeken; nieuwe poging bij de volgende ronde');
   }
-  return new CalendarError('http', `پاسخ Google Calendar: خطای ${response.status}`);
+  return new CalendarError('http', `Google Agenda antwoordde met fout ${response.status}`);
 }

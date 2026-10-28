@@ -1,7 +1,7 @@
 {
   "name": "pooya-calendar",
   "private": true,
-  "description": "Full-screen monthly calendar synced with Google Calendar, in Persian, with no server.",
+  "description": "Full-screen monthly calendar synced with Google Calendar, in Dutch, with no server.",
   "type": "module",
   "scripts": {
     "test": "node --test",

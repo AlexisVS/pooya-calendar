@@ -106,12 +106,12 @@ describe('normalizeEvent (Google API)', () => {
     assert.equal(dateKey(event.end), '2026-10-31');
   });
 
-  it('reads a timed event and names untitled ones in Persian', () => {
+  it('reads a timed event and names untitled ones in Dutch', () => {
     const start = new Date(2026, 9, 29, 10);
     const end = new Date(2026, 9, 29, 11);
     const event = normalizeEvent({ id: '2', start: { dateTime: start.toISOString() }, end: { dateTime: end.toISOString() } });
     assert.equal(event.allDay, false);
-    assert.equal(event.title, '(بدون عنوان)');
+    assert.equal(event.title, '(Geen titel)');
     assert.equal(event.start.getTime(), start.getTime());
   });
 

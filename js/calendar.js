@@ -61,7 +61,7 @@ export function dayState(day, events) {
 // Within a day: all-day events first, then by start time.
 export function compareEvents(a, b) {
   if (a.allDay !== b.allDay) return a.allDay ? -1 : 1;
-  return a.start - b.start || a.title.localeCompare(b.title, 'fa');
+  return a.start - b.start || a.title.localeCompare(b.title, 'nl');
 }
 
 // Places each event on every day it touches (end is exclusive).

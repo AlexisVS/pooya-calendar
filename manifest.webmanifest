@@ -1,8 +1,8 @@
 {
-  "name": "تقویم پویا",
-  "short_name": "تقویم",
-  "lang": "fa",
-  "dir": "rtl",
+  "name": "Agenda van Pooya",
+  "short_name": "Agenda",
+  "lang": "nl",
+  "dir": "ltr",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
