@@ -1,4 +1,5 @@
-// Lecture des événements via l'API Google Calendar v3 (appel direct depuis le navigateur).
+// Reads events through the Google Calendar API v3 (called directly from the browser).
+// Error messages are shown on screen, so they are in Persian.
 
 import { parseDateKey } from './calendar.js';
 
@@ -6,7 +7,7 @@ const API_BASE = 'https://www.googleapis.com/calendar/v3/calendars/';
 const FIELDS = 'items(id,status,summary,start,end,attendees(self,responseStatus)),nextPageToken';
 
 export class CalendarError extends Error {
-  // code : not-found | api-disabled | scope | rate-limit | http
+  // code: not-found | api-disabled | scope | rate-limit | http
   constructor(code, message) {
     super(message);
     this.name = 'CalendarError';
@@ -14,12 +15,12 @@ export class CalendarError extends Error {
   }
 }
 
-// Les journées entières (start.date) restent en heure locale, sans décalage de fuseau.
+// All-day events (start.date) stay in local time, with no time zone shift.
 export function normalizeEvent(item) {
   const allDay = Boolean(item.start.date);
   return {
     id: item.id,
-    title: item.summary?.trim() || '(Sans titre)',
+    title: item.summary?.trim() || '(بدون عنوان)',
     allDay,
     start: allDay ? parseDateKey(item.start.date) : new Date(item.start.dateTime),
     end: allDay ? parseDateKey(item.end.date) : new Date(item.end.dateTime),
@@ -70,16 +71,16 @@ async function toCalendarError(response) {
   const has = (...names) => names.some((name) => reasons.includes(name));
 
   if (response.status === 404) {
-    return new CalendarError('not-found', 'Agenda introuvable : vérifiez calendarId dans config.js');
+    return new CalendarError('not-found', 'تقویم پیدا نشد: calendarId را در config.js بررسی کنید');
   }
   if (has('accessNotConfigured', 'SERVICE_DISABLED')) {
-    return new CalendarError('api-disabled', "L'API Google Calendar n'est pas activée dans le projet Google Cloud");
+    return new CalendarError('api-disabled', 'Google Calendar API در پروژهٔ Google Cloud فعال نیست');
   }
   if (has('insufficientPermissions', 'ACCESS_TOKEN_SCOPE_INSUFFICIENT')) {
-    return new CalendarError('scope', "L'accès aux événements n'a pas été autorisé");
+    return new CalendarError('scope', 'اجازهٔ دسترسی به رویدادها داده نشده است');
   }
   if (response.status === 429 || has('rateLimitExceeded', 'userRateLimitExceeded', 'RESOURCE_EXHAUSTED')) {
-    return new CalendarError('rate-limit', 'Google limite les requêtes, nouvel essai au prochain cycle');
+    return new CalendarError('rate-limit', 'Google موقتاً درخواست‌ها را محدود کرده است؛ در نوبت بعد دوباره تلاش می‌شود');
   }
-  return new CalendarError('http', `Google Agenda a répondu ${response.status}`);
+  return new CalendarError('http', `پاسخ Google Calendar: خطای ${response.status}`);
 }

@@ -13,21 +13,27 @@ const RETURN_HOME_MS = 2 * 60_000;
 const IDLE_CURSOR_MS = 3_000;
 const CACHE_KEY = 'pooya-calendar.events';
 
+// Persian text, Gregorian calendar (same dates as Google Calendar), Latin digits.
+const LOCALE = 'fa-u-ca-gregory-nu-latn';
+
+// Keeps Latin fragments such as "?demo" or "https://" in reading order inside a right-to-left sentence.
+const ltr = (text) => `⁦${text}⁩`;
+
 const CONNECT_MESSAGES = {
   disconnected: '',
-  expired: "La connexion à Google a expiré ou a été révoquée. Reconnectez-vous pour reprendre l'affichage.",
-  denied: 'Connexion annulée. Vous pouvez recommencer quand vous voulez.',
-  scope: "L'accès aux événements de l'agenda n'a pas été autorisé. Recommencez en cochant cette autorisation.",
-  failed: "La connexion n'a pas abouti. Réessayez.",
-  config: "Configuration incomplète : renseignez clientId et clientSecret dans config.js (voir README.md). Pour un aperçu sans compte Google, ajoutez ?demo à l'adresse.",
-  insecure: "Google exige une adresse sécurisée : ouvrez l'application en https:// ou sur http://localhost.",
+  expired: 'اتصال به Google منقضی یا لغو شده است. برای ادامهٔ نمایش، دوباره وارد شوید.',
+  denied: 'ورود لغو شد. هر وقت خواستید می‌توانید دوباره امتحان کنید.',
+  scope: 'اجازهٔ دسترسی به رویدادهای تقویم داده نشد. دوباره وارد شوید و این اجازه را تیک بزنید.',
+  failed: 'ورود انجام نشد. دوباره تلاش کنید.',
+  config: `پیکربندی کامل نیست: clientId و clientSecret را در config.js وارد کنید (README.md را ببینید). برای پیش‌نمایش بدون حساب Google، ${ltr('?demo')} را به انتهای نشانی اضافه کنید.`,
+  insecure: `Google به نشانی امن نیاز دارد: برنامه را با ${ltr('https://')} یا روی ${ltr('http://localhost')} باز کنید.`,
 };
 const BLOCKING_REASONS = new Set(['config', 'insecure']);
 
 const fmt = {
-  monthYear: new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }),
-  monthShort: new Intl.DateTimeFormat('fr-FR', { month: 'short' }),
-  time: new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+  monthYear: new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric' }),
+  dayMonth: new Intl.DateTimeFormat(LOCALE, { day: 'numeric', month: 'long' }),
+  time: new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit' }),
 };
 
 const $ = (id) => document.getElementById(id);
@@ -57,7 +63,7 @@ const state = {
   renderedDay: null,
 };
 
-// Événements déjà chargés, par mois : revenir sur un mois vu s'affiche sans attendre Google.
+// Events already loaded, per month: going back to a month shows it without waiting for Google.
 const monthCache = new Map();
 const monthKey = ({ year, month }) => `${year}-${month}`;
 
@@ -66,7 +72,7 @@ let syncSeq = 0;
 let returnHomeTimer = null;
 let bootedAt = Date.now();
 
-// ---------------------------------------------------------------- utilitaires
+// ---------------------------------------------------------------- helpers
 
 function parseMonthParam(value) {
   const match = /^(\d{4})-(\d{2})$/.exec(value ?? '');
@@ -81,13 +87,9 @@ function esc(text) {
   return String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 }
 
-function capitalize(text) {
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
 const time = (date) => fmt.time.format(date);
 
-// ---------------------------------------------------------------- rendu
+// ---------------------------------------------------------------- rendering
 
 function render(now = new Date()) {
   state.renderedDay = dateKey(now);
@@ -98,7 +100,7 @@ function render(now = new Date()) {
 
 function renderHeader(now) {
   els.badge.textContent = now.getDate();
-  els.title.textContent = capitalize(fmt.monthYear.format(new Date(state.view.year, state.view.month, 1)));
+  els.title.textContent = fmt.monthYear.format(new Date(state.view.year, state.view.month, 1));
   els.clock.textContent = time(now);
 }
 
@@ -115,7 +117,7 @@ function dayHtml(day, events, maxChips) {
   const shown = events.slice(0, maxChips);
   const hidden = events.length - shown.length;
   const date = day.date;
-  const label = date.getDate() === 1 ? `1 ${fmt.monthShort.format(date)}` : String(date.getDate());
+  const label = date.getDate() === 1 ? fmt.dayMonth.format(date) : String(date.getDate());
   const classes = ['day', `day--${kind}`, events.length ? 'day--busy' : '', day.inMonth ? '' : 'day--outside']
     .filter(Boolean)
     .join(' ');
@@ -123,13 +125,13 @@ function dayHtml(day, events, maxChips) {
   return `<div class="${classes}">
     <span class="day__num">${esc(label)}</span>
     ${shown.map((event) => chipHtml(event, day)).join('')}
-    ${hidden > 0 ? `<span class="day__more">+${hidden} ${hidden > 1 ? 'autres' : 'autre'}</span>` : ''}
+    ${hidden > 0 ? `<span class="day__more">${hidden} مورد دیگر</span>` : ''}
   </div>`;
 }
 
 function chipHtml(event, day) {
   if (event.allDay) return `<span class="chip chip--allday">${esc(event.title)}</span>`;
-  // L'heure ne s'affiche que le jour où l'événement commence.
+  // The time is only shown on the day the event starts.
   const startsHere = dateKey(event.start) === day.key;
   return `<span class="chip">
     <span class="chip__dot"></span>
@@ -142,21 +144,21 @@ function renderStatus() {
   let text;
   let isError = false;
   if (isDemo) {
-    text = 'Données de démonstration';
+    text = 'داده‌های نمایشی';
   } else if (state.error) {
     isError = true;
-    const since = state.lastSync ? `, données de ${time(state.lastSync)}` : '';
-    text = state.error instanceof CalendarError ? `${state.error.message}${since}` : `Hors ligne${since}`;
+    const since = state.lastSync ? `، داده‌های ساعت ${time(state.lastSync)}` : '';
+    text = state.error instanceof CalendarError ? `${state.error.message}${since}` : `آفلاین${since}`;
   } else if (state.lastSync) {
-    text = `Synchronisé à ${time(state.lastSync)}`;
+    text = `آخرین به‌روزرسانی ${time(state.lastSync)}`;
   } else {
-    text = 'Synchronisation…';
+    text = 'در حال همگام‌سازی…';
   }
   els.status.textContent = text;
   els.status.classList.toggle('is-error', isError);
 }
 
-// ---------------------------------------------------------------- écrans
+// ---------------------------------------------------------------- screens
 
 function showCalendar() {
   els.connect.hidden = true;
@@ -176,7 +178,7 @@ function showConnect(reason) {
   if (!blocking) els.connectButton.focus();
 }
 
-// ---------------------------------------------------------------- synchronisation
+// ---------------------------------------------------------------- sync
 
 async function sync() {
   if (!els.connect.hidden) return;
@@ -202,7 +204,7 @@ async function sync() {
       await auth.logout();
       return showConnect('scope');
     }
-    console.error('[calendrier]', error);
+    console.error('[calendar]', error);
     state.error = error;
   } finally {
     if (seq === syncSeq) state.syncing = false;
@@ -213,7 +215,7 @@ async function sync() {
 function saveCache() {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ calendarId, savedAt: state.lastSync, events: state.events }));
-  } catch { /* stockage indisponible : pas de cache hors ligne */ }
+  } catch { /* storage unavailable: no offline cache */ }
 }
 
 function loadCache() {
@@ -222,18 +224,18 @@ function loadCache() {
     if (!cache || cache.calendarId !== calendarId) return;
     state.events = cache.events.map((e) => ({ ...e, start: new Date(e.start), end: new Date(e.end) }));
     state.lastSync = new Date(cache.savedAt);
-  } catch { /* cache illisible : ignoré */ }
+  } catch { /* unreadable cache: ignored */ }
 }
 
 function clearCache() {
-  try { localStorage.removeItem(CACHE_KEY); } catch { /* idem */ }
+  try { localStorage.removeItem(CACHE_KEY); } catch { /* same */ }
 }
 
-// ---------------------------------------------------------------- navigation et horloge
+// ---------------------------------------------------------------- navigation and clock
 
 function goToMonth(view) {
   state.view = view;
-  // Sans cache, on garde les événements déjà connus : les jours communs aux deux grilles restent justes.
+  // Without a cached month, keep the known events: days shared by both grids stay correct.
   state.events = monthCache.get(monthKey(view)) ?? state.events;
   render();
   sync();
@@ -245,7 +247,10 @@ function goToMonth(view) {
 
 function onKeyDown(event) {
   if (!els.connect.hidden || event.altKey || event.ctrlKey || event.metaKey) return;
-  const delta = { ArrowLeft: -1, PageUp: -1, ArrowRight: 1, PageDown: 1 }[event.key];
+  // Right to left, earlier months sit on the right: → goes back, ← goes forward.
+  const forward = document.dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
+  const back = document.dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft';
+  const delta = { [back]: -1, PageUp: -1, [forward]: 1, PageDown: 1 }[event.key];
   if (delta) goToMonth(shiftMonth(state.view, delta));
   else if (['Home', 'Escape', 't', 'T'].includes(event.key)) goToMonth(monthOf(new Date()));
   else return;
@@ -262,7 +267,7 @@ function setupNavigation() {
 function tick() {
   const now = new Date();
   if (dateKey(now) !== state.renderedDay) {
-    // Passage à minuit : on suit le nouveau mois si l'écran affichait le mois en cours.
+    // Midnight: follow the new month if the screen was showing the current one.
     const previous = new Date(now.getTime() - TICK_MS * 2);
     if (!pinnedView && sameMonth(state.view, monthOf(previous))) state.view = monthOf(now);
     render(now);
@@ -273,23 +278,23 @@ function tick() {
   maybeDailyReload(now);
 }
 
-// Recharge la page une fois par nuit (vers 3 h) pour prendre les mises à jour, seulement si le site répond.
+// Reloads the page once a night (around 3 am) to pick up updates, only if the site responds.
 async function maybeDailyReload(now) {
   if (now.getHours() !== 3 || Date.now() - bootedAt < 2 * 3_600_000) return;
   bootedAt = Date.now();
   try {
     const response = await fetch(location.href, { method: 'HEAD', cache: 'no-store' });
     if (response.ok) location.reload();
-  } catch { /* hors ligne : on garde la page actuelle */ }
+  } catch { /* offline: keep the current page */ }
 }
 
-// ---------------------------------------------------------------- kiosque
+// ---------------------------------------------------------------- kiosk
 
 async function keepScreenAwake() {
   if (!('wakeLock' in navigator) || document.visibilityState !== 'visible') return;
   try {
     await navigator.wakeLock.request('screen');
-  } catch { /* refusé par l'appareil : régler la mise en veille dans les paramètres */ }
+  } catch { /* refused by the device: set the sleep timeout in the device settings */ }
 }
 
 function setupIdleCursor() {
@@ -314,7 +319,7 @@ function startLoops() {
   });
 }
 
-// ---------------------------------------------------------------- démarrage
+// ---------------------------------------------------------------- startup
 
 async function boot() {
   setupIdleCursor();
@@ -334,7 +339,7 @@ async function boot() {
   if (!config.clientId || !config.clientSecret || config.clientId.startsWith('XXXX')) return showConnect('config');
   auth = createAuth(config);
 
-  if (params.has('deconnexion')) {
+  if (params.has('logout')) {
     await auth.logout();
     clearCache();
     history.replaceState(null, '', location.pathname);
@@ -343,7 +348,7 @@ async function boot() {
   try {
     await auth.completeLogin();
   } catch (error) {
-    console.error('[calendrier]', error);
+    console.error('[calendar]', error);
     return showConnect(error instanceof AuthError ? error.reason : 'failed');
   }
   if (!auth.isConnected()) return showConnect('disconnected');

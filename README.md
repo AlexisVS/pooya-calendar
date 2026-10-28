@@ -1,190 +1,201 @@
-# Calendrier de Pooya
+# تقویم پویا
 
-Calendrier mensuel plein écran, synchronisé avec Google Agenda, pensé pour un écran **non tactile** au format A4 en paysage. Thème inspiré de Google Agenda.
+تقویم ماهانهٔ تمام‌صفحه که با Google Calendar همگام می‌شود، برای یک صفحه‌نمایش **بدون لمس** به اندازهٔ کاغذ A4 در حالت افقی. ظاهر آن از Google Calendar الهام گرفته است.
 
-Les cases sont blanches, et jaune soleil dès qu'elles contiennent un rendez-vous. Les autres repères :
+رابط کاربری فارسی و راست‌به‌چپ است، با تقویم میلادی (همان تاریخ‌های Google Calendar)، هفته‌ای که از دوشنبه شروع می‌شود و اعداد لاتین.
 
-| Jour | Affichage |
+## رنگ خانه‌ها
+
+| روز | نمایش |
 | --- | --- |
-| Avec rendez-vous (passé ou futur) | fond jaune soleil |
-| Aujourd'hui avec rendez-vous | fond violet (la case violette suit le jour courant, elle avance chaque nuit) |
-| Aujourd'hui | bordure verte épaisse, numéro dans une pastille verte ; rendez-vous en rouge (point, heure et titre) |
-| Futur | rendez-vous avec un point violet (barre violette pour une journée entière) |
-| Passé | numéro et rendez-vous en vert |
+| روز دارای قرار (گذشته یا آینده) | پس‌زمینهٔ زرد آفتابی |
+| امروز، اگر قرار داشته باشد | پس‌زمینهٔ بنفش؛ خانهٔ بنفش همیشه روز جاری است و هر شب در نیمه‌شب یک روز جلو می‌رود |
+| امروز | حاشیهٔ سبز ضخیم و عدد روز در دایرهٔ سبز؛ قرارهای امروز قرمز هستند (نقطه، ساعت و عنوان) |
+| روز بدون قرار | پس‌زمینهٔ سفید |
 
-Le calendrier occupe tout l'écran. Chaque cellule montre jusqu'à trois événements (point, heure, titre tronqué) puis « +N autres ». Les données se rafraîchissent toutes les 5 minutes.
+نقطهٔ قرارهای آینده بنفش و نقطهٔ قرارهای گذشته سبز است. هر خانه حداکثر سه قرار را نشان می‌دهد (نقطه، ساعت و عنوان کوتاه‌شده) و بقیه را با «N مورد دیگر». داده‌ها هر 5 دقیقه به‌روز می‌شوند.
 
-Maquette de référence, faite dans Claude Design (accès sur invitation) : <https://claude.ai/artifact/Atn2ArQ9TPa3oBQn8vXtMT>. Ses fichiers sources sont versionnés dans [`design/`](design/) :
+### طرح مرجع
 
-| Fichier | Écran |
+طرح مرجع در Claude Design ساخته شده است (دسترسی فقط با دعوت): <https://claude.ai/artifact/Atn2ArQ9TPa3oBQn8vXtMT>. فایل‌های منبع آن در پوشهٔ [`design/`](design/) نگهداری می‌شوند:
+
+| فایل | صفحه |
 | --- | --- |
-| `design/Main.dc.html` | écran principal, vu le 28 octobre 2026 |
-| `design/Ecran-29-octobre.dc.html` | même écran, vu le lendemain (29 octobre), pour vérifier le passage d'un jour à l'autre |
-| `design/Connexion.dc.html` | écran de première connexion |
-| `design/canvas.json` | disposition des écrans sur le canevas |
+| `design/Main.dc.html` | صفحهٔ اصلی، در روز 28 اکتبر 2026 |
+| `design/Main-2026-10-29.dc.html` | همان صفحه در روز بعد (29 اکتبر)، برای بررسی رفتن از یک روز به روز بعد |
+| `design/SignIn.dc.html` | صفحهٔ اولین ورود |
+| `design/canvas.json` | چیدمان صفحه‌ها روی بوم |
 
 ---
 
-## Architecture
+## معماری
 
-**Aucun serveur à faire tourner.** L'application n'est qu'un ensemble de fichiers statiques (HTML, CSS, JS sans dépendance ni build), déposés sur un hébergement gratuit. Tout se passe dans le navigateur de l'écran.
+**هیچ سروری لازم نیست.** برنامه فقط مجموعه‌ای از فایل‌های ایستا است (HTML، CSS و JS، بدون وابستگی و بدون مرحلهٔ build) که روی یک میزبانی رایگان قرار می‌گیرد. همه‌چیز در مرورگر صفحه‌نمایش اجرا می‌شود.
 
 ```
- Écran (navigateur)                                   Google
-┌───────────────────────────────┐   1 fois    ┌─────────────────────────┐
+ Screen (browser)                                     Google
+┌───────────────────────────────┐    once     ┌─────────────────────────┐
 │ index.html + js/              │ ──────────▶ │ accounts.google.com     │
-│  auth.js         OAuth + PKCE │  connexion  │ (consentement)          │
+│  auth.js         OAuth + PKCE │   sign-in   │ (consent)               │
 │  google-calendar.js  API v3   │             ├─────────────────────────┤
-│  calendar.js   logique pure   │ ◀─────────▶ │ oauth2.googleapis.com   │
-│  app.js        affichage      │ toutes les  │ (renouvellement jeton)  │
-│ localStorage : refresh token  │   5 min     ├─────────────────────────┤
+│  calendar.js   pure logic     │ ◀─────────▶ │ oauth2.googleapis.com   │
+│  app.js        rendering      │    every    │ (token refresh)         │
+│ localStorage: refresh token   │    5 min    ├─────────────────────────┤
 │               + cache         │ ◀─────────▶ │ Calendar API v3         │
 └───────────────────────────────┘             └─────────────────────────┘
 ```
 
-- **Pourquoi un refresh token ?** Un écran sans tactile ne peut pas cliquer sur « Se connecter » toutes les heures. L'application utilise le flux OAuth « authorization code + PKCE » : après une seule connexion, elle reçoit un *refresh token* et renouvelle ensuite seule ses jetons d'accès, sans interaction.
-- **Lecture seule** : portée `calendar.events.readonly`. L'application ne peut rien modifier.
-- **Hors ligne** : le dernier état est gardé en cache. L'écran reste lisible et indique « Hors ligne, données de HH:MM ».
-- **Kiosque** : passage à minuit automatique, écran maintenu allumé (Wake Lock), curseur masqué, rechargement nocturne vers 3 h pour prendre les mises à jour.
+- **چرا refresh token؟** صفحه‌نمایش بدون لمس نمی‌تواند هر ساعت روی «ورود» کلیک کند. برنامه از روش OAuth «authorization code + PKCE» استفاده می‌کند: پس از یک بار ورود، یک refresh token می‌گیرد و از آن به بعد توکن‌های دسترسی را خودش، بدون هیچ تعاملی، تمدید می‌کند.
+- **فقط خواندنی:** دامنهٔ دسترسی `calendar.events.readonly` است؛ برنامه نمی‌تواند چیزی را تغییر دهد.
+- **آفلاین:** آخرین وضعیت ذخیره می‌شود. صفحه خوانا می‌ماند و «آفلاین، داده‌های ساعت HH:MM» را نشان می‌دهد.
+- **حالت کیوسک:** تعویض خودکار روز در نیمه‌شب، روشن ماندن صفحه (Wake Lock)، پنهان شدن نشانگر ماوس، و بارگذاری دوبارهٔ شبانه حدود ساعت 3 برای گرفتن به‌روزرسانی‌ها.
 
-```
-index.html            structure des deux écrans (calendrier, connexion)
-styles.css            thème et mise en page (1400 × 990 px de référence, mise à l'échelle auto)
-config.example.js     modèle de configuration → à copier en config.js
-js/app.js             rendu, synchronisation, horloge, clavier
-js/auth.js            OAuth 2.0 + PKCE, renouvellement des jetons
-js/google-calendar.js appels à l'API Google Calendar
-js/calendar.js        calculs de dates (grille, couleurs, regroupements), sans DOM
-js/demo.js            données fictives du mode démo
-tests/                tests de la logique (node --test)
-```
+| فایل | نقش |
+| --- | --- |
+| `index.html` | ساختار دو صفحه (تقویم و ورود) |
+| `styles.css` | ظاهر و چیدمان (مرجع 1400 × 990 پیکسل، با مقیاس خودکار) |
+| `config.example.js` | الگوی پیکربندی؛ آن را به `config.js` کپی کنید |
+| `js/app.js` | نمایش، همگام‌سازی، ساعت و صفحه‌کلید |
+| `js/auth.js` | OAuth 2.0 + PKCE و تمدید توکن‌ها |
+| `js/google-calendar.js` | فراخوانی Google Calendar API |
+| `js/calendar.js` | محاسبات تاریخ (جدول ماه، رنگ‌ها، گروه‌بندی)، بدون DOM |
+| `js/demo.js` | داده‌های ساختگی حالت نمایشی |
+| `tests/` | آزمون‌های منطق تاریخ (`node --test`) |
+| `design/` | فایل‌های منبع طرح Claude Design |
 
 ---
 
-## 1. Essayer tout de suite (mode démo)
+## 1. امتحان فوری (حالت نمایشی)
 
-Sans compte Google, avec des événements fictifs :
+بدون حساب Google و با رویدادهای ساختگی:
 
 ```bash
-python3 -m http.server 8765        # ou : npx serve -l 8765
+python3 -m http.server 8765        # or: npx serve -l 8765
 ```
 
-Ouvrez <http://localhost:8765/?demo>.
+سپس <http://localhost:8765/?demo> را باز کنید.
 
-> Ouvrir `index.html` directement (adresse `file://`) ne marche pas : les modules JS et Google exigent une adresse `http(s)://`.
+> باز کردن مستقیم `index.html` (نشانی `file://`) کار نمی‌کند: ماژول‌های JS و Google به نشانی `http(s)://` نیاز دارند.
 
-Tests de la logique de dates (Node ≥ 20) : `npm test`.
+آزمون‌های منطق تاریخ (Node نسخهٔ 20 یا بالاتر): `npm test`.
 
 ---
 
-## 2. Configurer l'API Google Calendar
+## 2. پیکربندی Google Calendar API
 
-À faire une fois, idéalement avec le compte Google de Pooya, dans la [Google Cloud Console](https://console.cloud.google.com/).
+این کار یک بار انجام می‌شود، ترجیحاً با حساب Google خود پویا، در [Google Cloud Console](https://console.cloud.google.com/). نام منوها همان‌طور آمده که در نسخهٔ انگلیسی کنسول دیده می‌شوند.
 
-1. **Créer un projet** : menu des projets → *Nouveau projet* → « Calendrier Pooya ».
-2. **Activer l'API** : *API et services → Bibliothèque* → « Google Calendar API » → *Activer*.
-3. **Écran de consentement** : *Google Auth Platform* (anciennement « Écran de consentement OAuth ») → *Commencer*.
-   - *Branding* : nom « Calendrier de Pooya », e-mail d'assistance.
-   - *Audience* : **Externe** (compte Gmail) ou **Interne** (Google Workspace, recommandé si disponible).
-   - *Accès aux données* → *Ajouter des champs d'application* → `https://www.googleapis.com/auth/calendar.events.readonly`.
-   - **Important, en Externe** : dans *Audience*, cliquez sur **Publier l'application** (statut « En production »). En mode « Test », Google invalide le refresh token **au bout de 7 jours** et l'écran se déconnecterait chaque semaine. Aucune validation Google n'est nécessaire pour un usage personnel. Pendant la connexion, Google affichera seulement « Google n'a pas validé cette application » : cliquez sur *Paramètres avancés → Accéder à Calendrier de Pooya*.
-4. **Créer le client OAuth** : *Clients → Créer un client* → type **Application Web**.
-   - *Origines JavaScript autorisées* : l'adresse du site, par ex. `https://calendrier-pooya.netlify.app` (et `http://localhost:8765` pour tester en local).
-   - *URI de redirection autorisées* : la même adresse **avec la barre finale**, par ex. `https://calendrier-pooya.netlify.app/` (et `http://localhost:8765/`).
-   - Notez l'**ID client** et le **code secret du client**.
-5. **Remplir la configuration** : copiez `config.example.js` en `config.js` et renseignez :
+1. **ساخت پروژه:** از منوی پروژه‌ها، *New project* را بزنید و نامی مثل «Pooya Calendar» بگذارید.
+2. **فعال‌سازی API:** در *APIs & Services* به *Library* بروید، «Google Calendar API» را پیدا کنید و *Enable* را بزنید.
+3. **صفحهٔ رضایت:** به *Google Auth Platform* بروید (نام قبلی: *OAuth consent screen*) و *Get started* را بزنید.
+   - در *Branding*: نام برنامه «Pooya Calendar» و ایمیل پشتیبانی.
+   - در *Audience*: **External** (حساب Gmail) یا **Internal** (Google Workspace؛ در صورت امکان توصیه می‌شود).
+   - در *Data access*: روی *Add or remove scopes* بزنید و این دامنه را اضافه کنید: `https://www.googleapis.com/auth/calendar.events.readonly`
+   - **مهم در حالت External:** در *Audience* روی **Publish app** بزنید (وضعیت *In production*). در حالت *Testing*، Google پس از **7 روز** refresh token را باطل می‌کند و صفحه هر هفته قطع می‌شود. برای استفادهٔ شخصی، تأیید Google لازم نیست. هنگام ورود فقط پیام *Google hasn't verified this app* نمایش داده می‌شود: روی *Advanced* و سپس *Go to Pooya Calendar (unsafe)* بزنید.
+4. **ساخت کلاینت OAuth:** در *Clients*، روی *Create client* بزنید و نوع **Web application** را انتخاب کنید.
+   - *Authorized JavaScript origins*: نشانی سایت، مثلاً `https://pooya-calendar.netlify.app` (و برای آزمایش محلی `http://localhost:8765`).
+   - *Authorized redirect URIs*: همان نشانی **با اسلش پایانی**، مثلاً `https://pooya-calendar.netlify.app/` (و `http://localhost:8765/`).
+   - **Client ID** و **Client secret** را یادداشت کنید.
+5. **تکمیل پیکربندی:** `config.example.js` را به `config.js` کپی کنید و مقدارها را وارد کنید:
 
    ```js
    window.CALENDAR_CONFIG = {
      clientId: '1234…apps.googleusercontent.com',
      clientSecret: 'GOCSPX-…',
-     calendarId: 'primary',   // ou l'ID d'un autre agenda
+     calendarId: 'primary',   // or the ID of another calendar
      refreshMinutes: 5,
    };
    ```
 
-   `primary` désigne l'agenda principal du compte qui se connecte. Pour un autre agenda, prenez son identifiant dans Google Agenda : *Paramètres de l'agenda → Intégrer l'agenda → ID de l'agenda*. Le compte qui se connecte doit y avoir accès.
+   `primary` یعنی تقویم اصلی حسابی که وارد می‌شود. برای تقویمی دیگر، شناسهٔ آن را از Google Calendar بردارید: در *Settings and sharing*، بخش *Integrate calendar*، مورد *Calendar ID*. حسابی که وارد می‌شود باید به آن تقویم دسترسی داشته باشد.
 
 ---
 
-## 3. Mettre en ligne et lancer l'application
+## 3. انتشار و اجرای برنامه
 
-N'importe quel hébergement de fichiers statiques en HTTPS convient. Le plus simple :
+هر میزبانی فایل ایستا با HTTPS مناسب است. ساده‌ترین گزینه‌ها:
 
-- **Netlify** : créez un compte gratuit, puis glissez-déposez le dossier (avec `config.js`) sur <https://app.netlify.com/drop>. Sans compte, le site est supprimé au bout d'une heure. Renommez le site dans *Site configuration* pour avoir une adresse stable.
-- **Cloudflare Pages** fonctionne de la même façon (*Workers & Pages → Créer → Pages → Importer des fichiers*).
-- **GitHub Pages** convient aussi, mais `config.js` serait visible dans le dépôt s'il est public (voir *Sécurité*).
+- **Netlify:** یک حساب رایگان بسازید و پوشه را (همراه با `config.js`) روی <https://app.netlify.com/drop> بکشید و رها کنید. بدون حساب، سایت پس از یک ساعت حذف می‌شود. در *Site configuration* نام سایت را تغییر دهید تا نشانی ثابتی داشته باشید.
+- **Cloudflare Pages** هم به همین شکل کار می‌کند (در *Workers & Pages*، گزینهٔ *Create*، سپس *Pages* و *Upload assets*).
+- **GitHub Pages** هم مناسب است، اما اگر مخزن عمومی باشد `config.js` در آن دیده می‌شود (بخش «امنیت» را ببینید).
 
-Reportez ensuite l'adresse exacte du site dans le client OAuth (étape 2.4), puis ouvrez-la.
+سپس نشانی دقیق سایت را در کلاینت OAuth وارد کنید (مرحلهٔ 2.4) و آن را باز کنید.
 
-### Première connexion sur l'écran
+### اولین ورود روی صفحه‌نمایش
 
-1. Branchez temporairement un clavier et une souris (USB ou Bluetooth).
-2. Ouvrez l'adresse du site : l'écran « Calendrier de Pooya » s'affiche. Appuyez sur Entrée ou cliquez sur *Se connecter avec Google*.
-3. Choisissez le compte, acceptez l'accès en lecture aux événements.
-4. Le calendrier s'affiche. Débranchez le clavier et la souris.
+1. موقتاً یک صفحه‌کلید و یک ماوس (USB یا بلوتوث) وصل کنید.
+2. نشانی سایت را باز کنید: صفحهٔ «تقویم پویا» نمایش داده می‌شود. Enter را بزنید یا روی «ورود با Google» کلیک کنید.
+3. حساب را انتخاب کنید و دسترسی خواندنی به رویدادها را بپذیرید.
+4. تقویم نمایش داده می‌شود. صفحه‌کلید و ماوس را جدا کنید.
 
-Par sécurité, vous pouvez ensuite vous déconnecter de Google dans ce navigateur : le calendrier continue de fonctionner, car il n'utilise que son propre jeton en lecture seule.
+برای امنیت بیشتر، می‌توانید سپس در همین مرورگر از Google خارج شوید: تقویم همچنان کار می‌کند، چون فقط از توکن فقط‌خواندنی خودش استفاده می‌کند.
 
 ---
 
-## 4. Afficher en plein écran sur la tablette
+## 4. نمایش تمام‌صفحه روی تبلت
 
-Dans tous les cas : désactivez la mise en veille de l'écran dans les réglages de l'appareil, et laissez-le branché.
+در همهٔ حالت‌ها: خاموش شدن خودکار صفحه را در تنظیمات دستگاه غیرفعال کنید و دستگاه را به برق وصل نگه دارید.
 
-**Android** (recommandé : [Fully Kiosk Browser](https://www.fully-kiosk.com/))
-1. Installez Fully Kiosk Browser, mettez l'adresse du site en *Start URL*.
-2. Activez *Keep Screen On*, *Launch on Boot* et *Hide Status Bar*.
-3. Faites la première connexion Google **dans** Fully Kiosk (chaque navigateur a son propre stockage).
+**Android** (پیشنهاد: [Fully Kiosk Browser](https://www.fully-kiosk.com/))
 
-Sans application tierce : Chrome → menu ⋮ → *Ajouter à l'écran d'accueil* / *Installer l'application*. Elle s'ouvre alors en plein écran et en paysage, grâce au manifeste. Activez aussi *Options pour les développeurs → Rester activé* (écran allumé pendant la charge).
+1. Fully Kiosk Browser را نصب کنید و نشانی سایت را در *Start URL* بگذارید.
+2. گزینه‌های *Keep Screen On*، *Launch on Boot* و *Hide Status Bar* را فعال کنید.
+3. اولین ورود به Google را **داخل** Fully Kiosk انجام دهید (هر مرورگر حافظهٔ جداگانهٔ خودش را دارد).
+
+بدون برنامهٔ اضافی: در Chrome، از منوی ⋮ گزینهٔ *Add to Home screen* یا *Install app* را بزنید. برنامه به لطف manifest، تمام‌صفحه و افقی باز می‌شود. در *Developer options* گزینهٔ *Stay awake* (روشن ماندن صفحه هنگام شارژ) را هم فعال کنید.
 
 **iPad**
-1. Safari → *Partager → Sur l'écran d'accueil*, puis ouvrez l'icône : l'application s'affiche sans barre d'adresse.
-2. Faites la connexion Google **depuis cette icône** : son stockage est séparé de celui de Safari.
-3. *Réglages → Luminosité et affichage → Verrouillage automatique : Jamais*. Pour verrouiller l'écran sur l'application : *Réglages → Accessibilité → Accès guidé*.
 
-**Écran branché sur un PC, un mini-PC ou un Raspberry Pi**
+1. در Safari، *Share* و سپس *Add to Home Screen* را بزنید و بعد آیکون را باز کنید: برنامه بدون نوار نشانی نمایش داده می‌شود.
+2. ورود به Google را **از همین آیکون** انجام دهید: حافظهٔ آن از Safari جداست.
+3. در *Settings*، بخش *Display & Brightness*، گزینهٔ *Auto-Lock* را روی *Never* بگذارید. برای قفل کردن صفحه روی برنامه: *Settings*، بخش *Accessibility*، گزینهٔ *Guided Access*.
+
+**صفحه‌نمایش متصل به PC، مینی‌PC یا Raspberry Pi**
+
 ```bash
-chromium --kiosk --noerrdialogs --disable-session-crashed-bubble https://calendrier-pooya.netlify.app/
-# Windows : "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk https://…
+chromium --kiosk --noerrdialogs --disable-session-crashed-bubble https://pooya-calendar.netlify.app/
+# Windows: "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk https://…
 ```
-Ajoutez la commande au démarrage de la session, et désactivez la veille du système.
+
+این فرمان را به شروع نشست اضافه کنید و حالت خواب سیستم را غیرفعال کنید.
 
 ---
 
-## Utilisation
+## استفاده
 
-Aucune interaction n'est nécessaire : l'écran affiche le mois en cours et se met à jour seul.
+هیچ تعاملی لازم نیست: صفحه ماه جاری را نشان می‌دهد و خودش به‌روز می‌شود.
 
-Pour parcourir l'année, l'en-tête reprend la navigation de Google Agenda : les flèches ‹ › passent au mois précédent ou suivant, et « Aujourd'hui » revient au mois en cours. Ces boutons marchent à la souris, et aussi au clavier :
+برای مرور ماه‌های سال، سرصفحه مانند Google Calendar است: پیکان‌های کنار عنوان به ماه قبل یا بعد می‌روند و دکمهٔ «امروز» به ماه جاری برمی‌گردد. این دکمه‌ها با ماوس کار می‌کنند و صفحه‌کلید هم پشتیبانی می‌شود:
 
-| Touche | Action |
+| کلید | کار |
 | --- | --- |
-| ← / → (ou Page préc. / suiv.) | mois précédent / suivant |
-| Origine, Échap ou T | retour au mois en cours |
+| → (یا Page Up) | ماه قبل |
+| ← (یا Page Down) | ماه بعد |
+| Home، Escape یا T | بازگشت به ماه جاری |
 
-Après 2 minutes sur un autre mois, l'écran revient seul au mois en cours. Un mois déjà consulté s'affiche immédiatement, sans attendre Google, puis se rafraîchit.
+چون صفحه راست‌به‌چپ است، ماه‌های قبل در سمت راست قرار دارند.
 
-Paramètres d'adresse : `?demo` (données fictives), `?month=2026-12` (afficher un mois fixe), `?deconnexion` (révoque le jeton et revient à l'écran de connexion).
+پس از 2 دقیقه روی ماهی دیگر، صفحه خودش به ماه جاری برمی‌گردد. ماهی که قبلاً دیده شده بلافاصله نمایش داده می‌شود و سپس به‌روز می‌شود.
 
----
-
-## Sécurité
-
-- **Le code secret du client est lisible dans `config.js`.** Google l'exige pour un client « Application Web », même avec PKCE. À lui seul, il ne donne accès à aucune donnée : il faut aussi le refresh token, qui n'existe que dans le navigateur de l'écran. Ne publiez pas `config.js` dans un dépôt public (il est dans `.gitignore`).
-- Le refresh token ne donne qu'une lecture des événements. Il est révocable à tout moment depuis <https://myaccount.google.com/permissions> ou avec `?deconnexion`.
+پارامترهای نشانی: `?demo` (داده‌های ساختگی)، `?month=2026-12` (نمایش یک ماه ثابت)، `?logout` (لغو توکن و بازگشت به صفحهٔ ورود).
 
 ---
 
-## Dépannage
+## امنیت
 
-| Symptôme | Cause et solution |
+- **Client secret در `config.js` قابل خواندن است.** Google آن را برای کلاینت «Web application» حتی با PKCE لازم می‌داند. این کد به‌تنهایی به هیچ داده‌ای دسترسی نمی‌دهد: refresh token هم لازم است که فقط در مرورگر صفحه‌نمایش وجود دارد. `config.js` را در مخزن عمومی منتشر نکنید (در `.gitignore` آمده است).
+- refresh token فقط اجازهٔ خواندن رویدادها را می‌دهد و هر زمان از <https://myaccount.google.com/permissions> یا با `?logout` قابل لغو است.
+
+---
+
+## عیب‌یابی
+
+| مشکل | علت و راه‌حل |
 | --- | --- |
-| `redirect_uri_mismatch` chez Google | L'URI de redirection du client doit être exactement l'adresse ouverte, barre finale comprise (`https://…/`). |
-| « La connexion à Google a expiré » chaque semaine | Application restée en mode « Test » : publiez-la (étape 2.3), puis reconnectez l'écran. |
-| « L'API Google Calendar n'est pas activée… » | Étape 2.2 oubliée, ou activée dans un autre projet que celui du client OAuth. |
-| « Agenda introuvable… » | `calendarId` incorrect, ou le compte connecté n'a pas accès à cet agenda. |
-| « Google exige une adresse sécurisée » | Le site est ouvert en `http://` sur une adresse réseau : utilisez l'adresse `https://` de l'hébergement. |
-| Heures décalées | Vérifiez le fuseau horaire réglé sur l'appareil : l'affichage suit celui de l'écran. |
-| L'écran se met en veille | Réglez la veille de l'appareil. Le maintien automatique (Wake Lock) ne fonctionne qu'en HTTPS. |
+| `redirect_uri_mismatch` در صفحهٔ Google | نشانی بازگشت کلاینت باید دقیقاً همان نشانی بازشده باشد، با اسلش پایانی (`https://…/`). |
+| «اتصال به Google منقضی یا لغو شده است» هر هفته | برنامه در حالت *Testing* مانده است: آن را منتشر کنید (مرحلهٔ 2.3) و دوباره وارد شوید. |
+| «Google Calendar API در پروژهٔ Google Cloud فعال نیست» | مرحلهٔ 2.2 انجام نشده، یا API در پروژه‌ای غیر از پروژهٔ کلاینت OAuth فعال شده است. |
+| «تقویم پیدا نشد…» | `calendarId` نادرست است، یا حساب واردشده به این تقویم دسترسی ندارد. |
+| «Google به نشانی امن نیاز دارد» | سایت با `http://` روی یک نشانی شبکه باز شده است: از نشانی `https://` میزبان استفاده کنید. |
+| ساعت‌ها جابه‌جا هستند | منطقهٔ زمانی دستگاه را بررسی کنید: نمایش از منطقهٔ زمانی صفحه‌نمایش پیروی می‌کند. |
+| صفحه به خواب می‌رود | خواب دستگاه را تنظیم کنید. نگه داشتن خودکار صفحه (Wake Lock) فقط روی HTTPS کار می‌کند. |

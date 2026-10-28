@@ -1,4 +1,6 @@
-/* Thème inspiré de Google Agenda (Material 3), couleurs de la palette Google. */
+/* Theme inspired by Google Calendar (Material 3), using the Google palette.
+   The page is right to left (Persian): spacing and borders use logical properties
+   (inline-start / inline-end) so the layout mirrors correctly. */
 :root {
   --surface: #ffffff;
   --surface-dim: #f8fafd;
@@ -25,13 +27,16 @@
   --error-ink: #8c1d18;
   --focus: #0b57d0;
 
-  --font-display: 'Google Sans', Roboto, Arial, sans-serif;
-  --font-text: 'Google Sans Text', 'Google Sans', Roboto, Arial, sans-serif;
+  /* Google Sans has no Persian glyphs: Latin digits use Google Sans, Persian text falls back to Vazirmatn,
+     then to the system's Persian fonts if Google Fonts cannot be reached. */
+  --font-persian: 'Vazirmatn', 'Noto Sans Arabic', 'Segoe UI', Tahoma, system-ui, sans-serif;
+  --font-display: 'Google Sans', var(--font-persian);
+  --font-text: 'Google Sans Text', 'Google Sans', var(--font-persian);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 
-/* Dessiné pour 1400 × 990 px (A4 paysage) à 16 px/rem ; tout s'agrandit ou rétrécit proportionnellement. */
+/* Designed at 1400 × 990 px (A4 landscape) at 16 px/rem; everything scales proportionally. */
 html { font-size: min(calc(100vw / 87.5), calc(100vh / 61.875)); }
 
 html, body { height: 100%; margin: 0; }
@@ -49,12 +54,13 @@ body {
 .app { height: 100%; display: flex; flex-direction: column; }
 .is-idle .app, .is-idle .app * { cursor: none; }
 
-/* ------------------------------------------------------------- en-tête */
+/* ------------------------------------------------------------- header */
 
 .topbar {
   flex: none;
   height: 6.5rem;
-  padding: 0 2rem 0 1.75rem;
+  padding-block: 0;
+  padding-inline: 1.75rem 2rem;
   display: flex;
   align-items: center;
   gap: 1.25rem;
@@ -88,7 +94,7 @@ body {
 }
 
 .nav__today {
-  margin-right: 0.75rem;
+  margin-inline-end: 0.75rem;
   padding: 0 1.5rem;
   border: 1px solid var(--outline);
   background: var(--surface);
@@ -110,7 +116,8 @@ body {
 .nav__today:active, .nav__arrow:active { background: var(--state-press); }
 .nav__today:focus-visible, .nav__arrow:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
-.topbar__title { margin: 0; font-size: 2.75rem; font-weight: 400; line-height: 1; letter-spacing: -0.01em; white-space: nowrap; }
+/* No letter-spacing anywhere: it breaks the joined letters of Persian script. */
+.topbar__title { margin: 0; font-size: 2.75rem; font-weight: 400; line-height: 1; white-space: nowrap; }
 
 .topbar__spacer { flex: 1; }
 
@@ -119,7 +126,7 @@ body {
 .clock__status { color: var(--text-subtle); font: 0.875rem var(--font-text); white-space: nowrap; }
 .clock__status.is-error { color: var(--error); font-weight: 500; }
 
-/* ------------------------------------------------------------- grille du mois */
+/* ------------------------------------------------------------- month grid */
 
 .month { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0 1.5rem 1.5rem; }
 
@@ -132,7 +139,7 @@ body {
   align-items: end;
 }
 
-.weekdays div { text-align: center; color: var(--text-muted); font-size: 0.9375rem; font-weight: 500; letter-spacing: 0.06em; }
+.weekdays div { text-align: center; color: var(--text-muted); font-size: 1rem; font-weight: 500; }
 
 .grid {
   flex: 1;
@@ -154,18 +161,18 @@ body {
   flex-direction: column;
   gap: 0.3125rem;
   overflow: hidden;
-  /* Traits en bordures plutôt qu'en « gap » : le navigateur les aligne sur les pixels,
-     donc ils gardent tous la même épaisseur malgré des colonnes de largeur fractionnaire. */
-  border-right: 2px solid var(--grid-line);
+  /* Lines drawn as borders rather than a grid gap: the browser snaps borders to whole pixels,
+     so every line keeps the same width even though the columns have fractional widths. */
+  border-inline-end: 2px solid var(--grid-line);
   border-bottom: 2px solid var(--grid-line);
   background: var(--surface);
 }
 
-.day:nth-child(7n) { border-right: 0; }
+.day:nth-child(7n) { border-inline-end: 0; }
 .day:nth-last-child(-n + 7) { border-bottom: 0; }
 
-/* Cases blanches, jaune soleil dès qu'il y a un rendez-vous ; aujourd'hui, s'il en a, est violet.
-   Aujourd'hui se repère aussi à sa bordure verte. */
+/* White cells, sunshine yellow as soon as there is an appointment; today turns violet when it has one.
+   Today is also marked by its green border. */
 .day--busy { background: var(--busy-bg); }
 .day--today.day--busy { background: var(--today-busy-bg); }
 .day--today { box-shadow: inset 0 0 0 0.1875rem var(--today-ring); }
@@ -201,7 +208,7 @@ body {
 
 .chip__dot { flex: none; width: 0.625rem; height: 0.625rem; border-radius: 50%; background: var(--today-ring); }
 .day--event .chip__dot { background: var(--event-strong); }
-/* Les rendez-vous du jour en rouge : point, heure et titre. */
+/* Today's appointments in red: dot, time and title. */
 .day--today .chip__dot { background: var(--today-event); }
 .day--today .chip__time,
 .day--today .chip__title { color: var(--today-event); }
@@ -224,7 +231,7 @@ body {
 
 .day__more { padding: 0 0.25rem; color: var(--text-muted); font: 500 0.875rem var(--font-text); }
 
-/* ------------------------------------------------------------- écran de connexion */
+/* ------------------------------------------------------------- sign-in screen */
 
 .connect { position: fixed; inset: 0; padding: 2rem; display: grid; place-items: center; background: var(--surface-dim); }
 
@@ -239,13 +246,13 @@ body {
   box-shadow: 0 1px 3px rgb(60 64 67 / 0.3), 0 4px 8px 3px rgb(60 64 67 / 0.15);
 }
 
-.connect__title { margin: 0; font-size: 2.5rem; font-weight: 400; line-height: 1.15; }
-.connect__text { margin: 0.75rem 0 0; color: var(--text-muted); font: 1.1875rem/1.55 var(--font-text); }
-.connect__message { margin: 0; padding: 0.875rem 1.125rem; border-radius: 0.75rem; background: var(--error-bg); color: var(--error-ink); font: 1rem/1.5 var(--font-text); }
-.connect__note { margin: 0; color: var(--text-muted); font: 1rem/1.5 var(--font-text); }
+.connect__title { margin: 0; font-size: 2.5rem; font-weight: 400; line-height: 1.3; }
+.connect__text { margin: 0.75rem 0 0; color: var(--text-muted); font: 1.1875rem/1.8 var(--font-text); }
+.connect__message { margin: 0; padding: 0.875rem 1.125rem; border-radius: 0.75rem; background: var(--error-bg); color: var(--error-ink); font: 1rem/1.7 var(--font-text); }
+.connect__note { margin: 0; color: var(--text-muted); font: 1rem/1.7 var(--font-text); }
 .connect__aside { padding-top: 1.5rem; display: flex; flex-direction: column; gap: 0.375rem; border-top: 1px solid var(--line); }
 .connect__aside h2 { margin: 0; font-size: 1.125rem; font-weight: 500; }
-.connect__aside p { margin: 0; color: var(--text-muted); font: 1rem/1.55 var(--font-text); }
+.connect__aside p { margin: 0; color: var(--text-muted); font: 1rem/1.8 var(--font-text); }
 
 .button {
   align-self: flex-start;

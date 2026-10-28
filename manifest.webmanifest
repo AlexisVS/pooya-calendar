@@ -1,7 +1,8 @@
 {
-  "name": "Calendrier de Pooya",
-  "short_name": "Calendrier",
-  "lang": "fr",
+  "name": "تقویم پویا",
+  "short_name": "تقویم",
+  "lang": "fa",
+  "dir": "rtl",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

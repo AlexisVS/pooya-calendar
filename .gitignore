@@ -1,8 +1,8 @@
-# Contient les identifiants OAuth : à ne pas versionner dans un dépôt public.
+# Holds the OAuth credentials: never commit it to a public repository.
 config.js
 node_modules/
 
-# Fichiers locaux de l'éditeur et des outils
+# Local editor and tool files
 .idea/
 .claude/
 .remember/

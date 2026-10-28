@@ -1,7 +1,7 @@
 {
   "name": "pooya-calendar",
   "private": true,
-  "description": "Calendrier mensuel plein écran synchronisé avec Google Agenda, sans serveur.",
+  "description": "Full-screen monthly calendar synced with Google Calendar, in Persian, with no server.",
   "type": "module",
   "scripts": {
     "test": "node --test",

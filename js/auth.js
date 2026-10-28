@@ -1,6 +1,6 @@
-// OAuth 2.0 « authorization code » + PKCE, entièrement dans le navigateur.
-// Le refresh token est gardé dans le localStorage de l'écran : après la première
-// connexion, les jetons d'accès se renouvellent sans aucune interaction.
+// OAuth 2.0 "authorization code" + PKCE, entirely in the browser.
+// The refresh token is kept in the screen's localStorage: after the first
+// sign-in, access tokens are renewed without any interaction.
 
 const AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
@@ -12,9 +12,9 @@ const PENDING_LOGIN_KEY = 'pooya-calendar.pending-login';
 const EXPIRY_MARGIN_MS = 60_000;
 
 export class AuthError extends Error {
-  // reason : disconnected | expired | denied | scope | config | insecure | failed
+  // reason: disconnected | expired | denied | scope | config | insecure | failed
   constructor(reason) {
-    super(`Authentification Google : ${reason}`);
+    super(`Google authentication: ${reason}`);
     this.name = 'AuthError';
     this.reason = reason;
   }
@@ -25,10 +25,10 @@ const storage = {
     try { return localStorage.getItem(key); } catch { return null; }
   },
   set(key, value) {
-    try { localStorage.setItem(key, value); } catch { /* stockage indisponible (navigation privée) */ }
+    try { localStorage.setItem(key, value); } catch { /* storage unavailable (private browsing) */ }
   },
   remove(key) {
-    try { localStorage.removeItem(key); } catch { /* idem */ }
+    try { localStorage.removeItem(key); } catch { /* same */ }
   },
 };
 
@@ -42,7 +42,7 @@ function randomString(byteLength) {
   return base64Url(crypto.getRandomValues(new Uint8Array(byteLength)));
 }
 
-// Doit correspondre exactement à une « URI de redirection autorisée » du client OAuth.
+// Must match one of the OAuth client's "Authorized redirect URIs" exactly.
 function defaultRedirectUri() {
   return location.origin + location.pathname.replace(/index\.html$/, '');
 }
@@ -58,7 +58,7 @@ export function createAuth({ clientId, clientSecret, redirectUri = defaultRedire
   }
 
   async function requestToken(fields) {
-    // Google exige le client_secret pour un client « Application Web », même avec PKCE.
+    // Google requires the client_secret for a "Web application" client, even with PKCE.
     const response = await fetch(TOKEN_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -68,7 +68,7 @@ export function createAuth({ clientId, clientSecret, redirectUri = defaultRedire
     if (response.ok) return data;
     if (data.error === 'invalid_grant') throw new AuthError('expired');
     if (data.error === 'invalid_client' || data.error === 'unauthorized_client') throw new AuthError('config');
-    throw new Error(`Échange de jeton refusé (${response.status} ${data.error ?? ''})`.trim());
+    throw new Error(`Token exchange refused (${response.status} ${data.error ?? ''})`.trim());
   }
 
   async function refresh() {
@@ -109,7 +109,7 @@ export function createAuth({ clientId, clientSecret, redirectUri = defaultRedire
       location.assign(`${AUTH_ENDPOINT}?${params}`);
     },
 
-    // Termine la connexion au retour de Google. Renvoie false si l'URL ne contient pas de réponse OAuth.
+    // Finishes the sign-in when Google redirects back. Returns false if the URL holds no OAuth response.
     async completeLogin() {
       const params = new URLSearchParams(location.search);
       if (!params.has('code') && !params.has('error')) return false;
@@ -130,7 +130,7 @@ export function createAuth({ clientId, clientSecret, redirectUri = defaultRedire
           redirect_uri: redirectUri,
         });
       } catch (error) {
-        // Ici, invalid_grant signifie un code déjà utilisé ou périmé, pas une connexion expirée.
+        // Here invalid_grant means a reused or stale code, not an expired connection.
         if (error instanceof AuthError && error.reason === 'expired') throw new AuthError('failed');
         throw error;
       }
@@ -163,7 +163,7 @@ export function createAuth({ clientId, clientSecret, redirectUri = defaultRedire
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({ token: refreshToken }),
         });
-      } catch { /* hors ligne : le jeton local est supprimé quand même */ }
+      } catch { /* offline: the local token is removed anyway */ }
     },
   };
 }

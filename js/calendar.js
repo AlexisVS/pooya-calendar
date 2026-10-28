@@ -1,10 +1,10 @@
-// Logique de calendrier pure (aucun accès au DOM) : partagée par l'application et les tests.
+// Pure calendar logic (no DOM access): shared by the app and the tests.
 
 export function startOfDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-// Passe par le constructeur plutôt que par des millisecondes : reste juste lors des changements d'heure.
+// Goes through the Date constructor rather than milliseconds, so it stays correct across DST changes.
 export function addDays(date, days) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
 }
@@ -32,7 +32,7 @@ export function sameMonth(a, b) {
   return a.year === b.year && a.month === b.month;
 }
 
-// Grille lundi → dimanche couvrant tout le mois, jours débordants des mois voisins compris.
+// Monday → Sunday grid (Gregorian calendar) covering the whole month, including overflow days of neighbouring months.
 export function buildMonthGrid(year, month, now) {
   const first = new Date(year, month, 1);
   const offset = (first.getDay() + 6) % 7;
@@ -51,20 +51,20 @@ export function buildMonthGrid(year, month, now) {
   return { year, month, weeks, start, end: addDays(start, weeks * 7), days };
 }
 
-// Règles de couleur : aujourd'hui, puis passé, puis futur avec événement (violet) ou libre (jaune).
+// Day kind, used for the appointment colours: today, then past, then future with an event, otherwise free.
 export function dayState(day, events) {
   if (day.isToday) return 'today';
   if (day.isPast) return 'past';
   return events.length > 0 ? 'event' : 'free';
 }
 
-// Dans une journée : journées entières d'abord, puis par heure de début.
+// Within a day: all-day events first, then by start time.
 export function compareEvents(a, b) {
   if (a.allDay !== b.allDay) return a.allDay ? -1 : 1;
-  return a.start - b.start || a.title.localeCompare(b.title, 'fr');
+  return a.start - b.start || a.title.localeCompare(b.title, 'fa');
 }
 
-// Range chaque événement sur chacun des jours qu'il touche (fin exclusive).
+// Places each event on every day it touches (end is exclusive).
 export function groupEventsByDay(events) {
   const byDay = new Map();
   for (const event of events) {

@@ -4,13 +4,13 @@ import { describe, it } from 'node:test';
 import { buildMonthGrid, dateKey, dayState, groupEventsByDay, shiftMonth } from '../js/calendar.js';
 import { isVisible, normalizeEvent } from '../js/google-calendar.js';
 
-const NOW = new Date(2026, 9, 28, 13, 42); // mercredi 28 octobre 2026
+const NOW = new Date(2026, 9, 28, 13, 42); // Wednesday 28 October 2026
 
 const timed = (title, start, end) => ({ id: title, title, allDay: false, start, end });
 const allDay = (title, start, end) => ({ id: title, title, allDay: true, start, end });
 
 describe('buildMonthGrid', () => {
-  it('commence un lundi et couvre octobre 2026 en 5 semaines', () => {
+  it('starts on a Monday and covers October 2026 in 5 weeks', () => {
     const grid = buildMonthGrid(2026, 9, NOW);
     assert.equal(grid.weeks, 5);
     assert.equal(grid.days.length, 35);
@@ -19,17 +19,17 @@ describe('buildMonthGrid', () => {
     assert.equal(dateKey(grid.end), '2026-11-02');
   });
 
-  it('passe à 6 semaines quand le mois déborde (août 2026)', () => {
+  it('uses 6 weeks when the month overflows (August 2026)', () => {
     const grid = buildMonthGrid(2026, 7, NOW);
     assert.equal(grid.weeks, 6);
     assert.equal(grid.days[0].key, '2026-07-27');
   });
 
-  it('se contente de 4 semaines pour un février qui commence un lundi (2027)', () => {
+  it('needs only 4 weeks for a February starting on a Monday (2027)', () => {
     assert.equal(buildMonthGrid(2027, 1, NOW).weeks, 4);
   });
 
-  it('marque aujourd’hui, le passé et les jours hors du mois', () => {
+  it('flags today, past days and days outside the month', () => {
     const days = Object.fromEntries(buildMonthGrid(2026, 9, NOW).days.map((d) => [d.key, d]));
     assert.equal(days['2026-10-28'].isToday, true);
     assert.equal(days['2026-10-28'].isPast, false);
@@ -39,7 +39,7 @@ describe('buildMonthGrid', () => {
     assert.equal(days['2026-11-01'].inMonth, false);
   });
 
-  it('suit le jour courant : le lendemain devient « aujourd’hui » à minuit', () => {
+  it('follows the current day: tomorrow becomes "today" at midnight', () => {
     const todays = (now) => buildMonthGrid(2026, 9, now).days.filter((d) => d.isToday).map((d) => d.key);
     assert.deepEqual(todays(new Date(2026, 9, 28, 23, 59)), ['2026-10-28']);
     assert.deepEqual(todays(new Date(2026, 9, 29, 0, 0)), ['2026-10-29']);
@@ -49,73 +49,73 @@ describe('buildMonthGrid', () => {
 describe('dayState', () => {
   const day = (overrides) => ({ isToday: false, isPast: false, ...overrides });
 
-  it('aujourd’hui reste « today », avec ou sans événement', () => {
+  it('today stays "today", with or without events', () => {
     assert.equal(dayState(day({ isToday: true }), [{}]), 'today');
     assert.equal(dayState(day({ isToday: true }), []), 'today');
   });
 
-  it('un jour passé reste « past », avec ou sans événement', () => {
+  it('a past day stays "past", with or without events', () => {
     assert.equal(dayState(day({ isPast: true }), [{}]), 'past');
     assert.equal(dayState(day({ isPast: true }), []), 'past');
   });
 
-  it('un jour futur est « event » avec un événement, « free » sinon', () => {
+  it('a future day is "event" with an event, "free" otherwise', () => {
     assert.equal(dayState(day({}), [{}]), 'event');
     assert.equal(dayState(day({}), []), 'free');
   });
 });
 
 describe('groupEventsByDay', () => {
-  it('étale une journée entière de plusieurs jours, fin exclusive', () => {
-    const byDay = groupEventsByDay([allDay('Salon', new Date(2026, 9, 20), new Date(2026, 9, 22))]);
+  it('spreads a multi-day all-day event, end exclusive', () => {
+    const byDay = groupEventsByDay([allDay('Trade fair', new Date(2026, 9, 20), new Date(2026, 9, 22))]);
     assert.deepEqual([...byDay.keys()], ['2026-10-20', '2026-10-21']);
   });
 
-  it('place un événement qui passe minuit sur les deux jours', () => {
-    const byDay = groupEventsByDay([timed('Garde', new Date(2026, 9, 28, 23), new Date(2026, 9, 29, 1))]);
+  it('places an event crossing midnight on both days', () => {
+    const byDay = groupEventsByDay([timed('Night shift', new Date(2026, 9, 28, 23), new Date(2026, 9, 29, 1))]);
     assert.deepEqual([...byDay.keys()], ['2026-10-28', '2026-10-29']);
   });
 
-  it('ne déborde pas sur le lendemain quand la fin tombe pile à minuit', () => {
-    const byDay = groupEventsByDay([timed('Soirée', new Date(2026, 9, 28, 20), new Date(2026, 9, 29, 0))]);
+  it('does not spill into the next day when the end is exactly midnight', () => {
+    const byDay = groupEventsByDay([timed('Evening', new Date(2026, 9, 28, 20), new Date(2026, 9, 29, 0))]);
     assert.deepEqual([...byDay.keys()], ['2026-10-28']);
   });
 
-  it('trie : journées entières d’abord, puis par heure', () => {
+  it('sorts all-day events first, then by time', () => {
     const list = groupEventsByDay([
-      timed('Après-midi', new Date(2026, 9, 28, 14), new Date(2026, 9, 28, 15)),
-      timed('Matin', new Date(2026, 9, 28, 9), new Date(2026, 9, 28, 10)),
-      allDay('Congé', new Date(2026, 9, 28), new Date(2026, 9, 29)),
+      timed('Afternoon', new Date(2026, 9, 28, 14), new Date(2026, 9, 28, 15)),
+      timed('Morning', new Date(2026, 9, 28, 9), new Date(2026, 9, 28, 10)),
+      allDay('Day off', new Date(2026, 9, 28), new Date(2026, 9, 29)),
     ]).get('2026-10-28');
-    assert.deepEqual(list.map((e) => e.title), ['Congé', 'Matin', 'Après-midi']);
+    assert.deepEqual(list.map((e) => e.title), ['Day off', 'Morning', 'Afternoon']);
   });
 });
 
 describe('shiftMonth', () => {
-  it('change d’année au besoin', () => {
+  it('changes year when needed', () => {
     assert.deepEqual(shiftMonth({ year: 2026, month: 11 }, 1), { year: 2027, month: 0 });
     assert.deepEqual(shiftMonth({ year: 2026, month: 0 }, -1), { year: 2025, month: 11 });
   });
 });
 
-describe('normalizeEvent (API Google)', () => {
-  it('lit une journée entière en date locale', () => {
-    const event = normalizeEvent({ id: '1', summary: 'Congé', start: { date: '2026-10-30' }, end: { date: '2026-10-31' } });
+describe('normalizeEvent (Google API)', () => {
+  it('reads an all-day event as a local date', () => {
+    const event = normalizeEvent({ id: '1', summary: 'Day off', start: { date: '2026-10-30' }, end: { date: '2026-10-31' } });
     assert.equal(event.allDay, true);
     assert.equal(dateKey(event.start), '2026-10-30');
     assert.equal(dateKey(event.end), '2026-10-31');
   });
 
-  it('lit un événement horaire et nomme ceux sans titre', () => {
+  it('reads a timed event and names untitled ones in Persian', () => {
     const start = new Date(2026, 9, 29, 10);
     const end = new Date(2026, 9, 29, 11);
     const event = normalizeEvent({ id: '2', start: { dateTime: start.toISOString() }, end: { dateTime: end.toISOString() } });
     assert.equal(event.allDay, false);
-    assert.equal(event.title, '(Sans titre)');
+    assert.equal(event.title, '(بدون عنوان)');
     assert.equal(event.start.getTime(), start.getTime());
   });
 
-  it('masque les événements annulés et ceux refusés par la personne', () => {
+  it('hides cancelled events and those the person declined', () => {
     const base = { start: { date: '2026-10-30' }, end: { date: '2026-10-31' } };
     assert.equal(isVisible({ ...base, status: 'confirmed' }), true);
     assert.equal(isVisible({ ...base, status: 'cancelled' }), false);
