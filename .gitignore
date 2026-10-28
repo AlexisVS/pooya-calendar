@@ -1,0 +1,8 @@
+# Contient les identifiants OAuth : à ne pas versionner dans un dépôt public.
+config.js
+node_modules/
+
+# Fichiers locaux de l'éditeur et des outils
+.idea/
+.claude/
+.remember/

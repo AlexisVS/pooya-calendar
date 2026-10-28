@@ -1,0 +1,13 @@
+{
+  "name": "pooya-calendar",
+  "private": true,
+  "description": "Calendrier mensuel plein écran synchronisé avec Google Agenda, sans serveur.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "dev": "python3 -m http.server 8765"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
