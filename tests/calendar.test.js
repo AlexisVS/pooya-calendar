@@ -38,22 +38,30 @@ describe('buildMonthGrid', () => {
     assert.equal(days['2026-09-30'].inMonth, false);
     assert.equal(days['2026-11-01'].inMonth, false);
   });
+
+  it('suit le jour courant : le lendemain devient « aujourd’hui » à minuit', () => {
+    const todays = (now) => buildMonthGrid(2026, 9, now).days.filter((d) => d.isToday).map((d) => d.key);
+    assert.deepEqual(todays(new Date(2026, 9, 28, 23, 59)), ['2026-10-28']);
+    assert.deepEqual(todays(new Date(2026, 9, 29, 0, 0)), ['2026-10-29']);
+  });
 });
 
 describe('dayState', () => {
   const day = (overrides) => ({ isToday: false, isPast: false, ...overrides });
 
-  it('aujourd’hui reste « today » même avec des événements', () => {
+  it('aujourd’hui reste « today », avec ou sans événement', () => {
     assert.equal(dayState(day({ isToday: true }), [{}]), 'today');
+    assert.equal(dayState(day({ isToday: true }), []), 'today');
   });
 
-  it('un jour passé reste « past » même avec des événements', () => {
+  it('un jour passé reste « past », avec ou sans événement', () => {
     assert.equal(dayState(day({ isPast: true }), [{}]), 'past');
+    assert.equal(dayState(day({ isPast: true }), []), 'past');
   });
 
-  it('distingue les jours futurs avec et sans événement', () => {
+  it('un jour futur est « event » avec un événement, « free » sinon', () => {
     assert.equal(dayState(day({}), [{}]), 'event');
-    assert.equal(dayState(day({}), []), 'empty');
+    assert.equal(dayState(day({}), []), 'free');
   });
 });
 

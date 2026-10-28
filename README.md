@@ -2,16 +2,26 @@
 
 Calendrier mensuel plein écran, synchronisé avec Google Agenda, pensé pour un écran **non tactile** au format A4 en paysage. Thème inspiré de Google Agenda.
 
+Les cases sont blanches, et jaune soleil dès qu'elles contiennent un rendez-vous. Les autres repères :
+
 | Jour | Affichage |
 | --- | --- |
-| Passé | fond vert pastel |
-| Aujourd'hui | fond vert, bordure verte épaisse, numéro dans une pastille |
-| Futur avec au moins un événement | fond violet |
-| Futur sans événement | fond blanc |
+| Avec rendez-vous (passé ou futur) | fond jaune soleil |
+| Aujourd'hui avec rendez-vous | fond violet (la case violette suit le jour courant, elle avance chaque nuit) |
+| Aujourd'hui | bordure verte épaisse, numéro dans une pastille verte ; rendez-vous en rouge (point, heure et titre) |
+| Futur | rendez-vous avec un point violet (barre violette pour une journée entière) |
+| Passé | numéro et rendez-vous en vert |
 
 Le calendrier occupe tout l'écran. Chaque cellule montre jusqu'à trois événements (point, heure, titre tronqué) puis « +N autres ». Les données se rafraîchissent toutes les 5 minutes.
 
-Maquette Claude Design (accès sur invitation) : <https://claude.ai/artifact/Atn2ArQ9TPa3oBQn8vXtMT>
+Maquette de référence, faite dans Claude Design (accès sur invitation) : <https://claude.ai/artifact/Atn2ArQ9TPa3oBQn8vXtMT>. Ses fichiers sources sont versionnés dans [`design/`](design/) :
+
+| Fichier | Écran |
+| --- | --- |
+| `design/Main.dc.html` | écran principal, vu le 28 octobre 2026 |
+| `design/Ecran-29-octobre.dc.html` | même écran, vu le lendemain (29 octobre), pour vérifier le passage d'un jour à l'autre |
+| `design/Connexion.dc.html` | écran de première connexion |
+| `design/canvas.json` | disposition des écrans sur le canevas |
 
 ---
 

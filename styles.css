@@ -3,6 +3,7 @@
   --surface: #ffffff;
   --surface-dim: #f8fafd;
   --line: #dadce0;
+  --grid-line: #c4c7c5;
   --text: #1f1f1f;
   --text-muted: #444746;
   --text-subtle: #5f6368;
@@ -10,15 +11,14 @@
   --state-hover: rgb(31 31 31 / 0.08);
   --state-press: rgb(31 31 31 / 0.12);
 
-  --past-bg: #e6f4ea;
   --past-ink: #137333;
   --past-chip-bg: #ceead6;
   --past-chip-ink: #0d652d;
-  --today-bg: #ceead6;
   --today-ring: #188038;
-  --event-bg: #f3e8fd;
+  --today-event: #b3261e;
   --event-strong: #9334e6;
-  --event-ink: #8430ce;
+  --busy-bg: #ffec80;
+  --today-busy-bg: #e9d2fd;
 
   --error: #b3261e;
   --error-bg: #fce8e6;
@@ -114,23 +114,6 @@ body {
 
 .topbar__spacer { flex: 1; }
 
-.legend {
-  margin: 0 1.25rem 0 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  color: var(--text-muted);
-  font: 1rem var(--font-text);
-}
-
-.legend li { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.legend__swatch { width: 1.125rem; height: 1.125rem; border-radius: 0.3125rem; }
-.legend__swatch--past { background: var(--past-bg); box-shadow: inset 0 0 0 1px rgb(24 128 56 / 0.3); }
-.legend__swatch--today { background: var(--today-bg); box-shadow: inset 0 0 0 2px var(--today-ring); }
-.legend__swatch--event { background: var(--event-bg); box-shadow: inset 0 0 0 1px rgb(147 52 230 / 0.35); }
-
 .clock { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; }
 .clock__time { font-size: 2.5rem; line-height: 1; font-variant-numeric: tabular-nums; }
 .clock__status { color: var(--text-subtle); font: 0.875rem var(--font-text); white-space: nowrap; }
@@ -157,11 +140,10 @@ body {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   grid-template-rows: repeat(var(--weeks, 5), minmax(0, 1fr));
-  gap: 1px;
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: 2px solid var(--grid-line);
   border-radius: 0.75rem;
-  background: var(--line);
+  background: var(--surface);
 }
 
 .day {
@@ -172,12 +154,21 @@ body {
   flex-direction: column;
   gap: 0.3125rem;
   overflow: hidden;
+  /* Traits en bordures plutôt qu'en « gap » : le navigateur les aligne sur les pixels,
+     donc ils gardent tous la même épaisseur malgré des colonnes de largeur fractionnaire. */
+  border-right: 2px solid var(--grid-line);
+  border-bottom: 2px solid var(--grid-line);
   background: var(--surface);
 }
 
-.day--past { background: var(--past-bg); }
-.day--today { background: var(--today-bg); box-shadow: inset 0 0 0 0.1875rem var(--today-ring); }
-.day--event { background: var(--event-bg); }
+.day:nth-child(7n) { border-right: 0; }
+.day:nth-last-child(-n + 7) { border-bottom: 0; }
+
+/* Cases blanches, jaune soleil dès qu'il y a un rendez-vous ; aujourd'hui, s'il en a, est violet.
+   Aujourd'hui se repère aussi à sa bordure verte. */
+.day--busy { background: var(--busy-bg); }
+.day--today.day--busy { background: var(--today-busy-bg); }
+.day--today { box-shadow: inset 0 0 0 0.1875rem var(--today-ring); }
 
 .day__num {
   align-self: center;
@@ -210,6 +201,10 @@ body {
 
 .chip__dot { flex: none; width: 0.625rem; height: 0.625rem; border-radius: 50%; background: var(--today-ring); }
 .day--event .chip__dot { background: var(--event-strong); }
+/* Les rendez-vous du jour en rouge : point, heure et titre. */
+.day--today .chip__dot { background: var(--today-event); }
+.day--today .chip__time,
+.day--today .chip__title { color: var(--today-event); }
 .chip__time { flex: none; color: var(--text-muted); }
 .chip__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
 
@@ -224,8 +219,8 @@ body {
   font-weight: 500;
 }
 
-.day--today .chip--allday { background: var(--today-ring); color: #fff; }
 .day--event .chip--allday { background: var(--event-strong); color: #fff; }
+.day--today .chip--allday { background: var(--today-event); color: #fff; }
 
 .day__more { padding: 0 0.25rem; color: var(--text-muted); font: 500 0.875rem var(--font-text); }
 

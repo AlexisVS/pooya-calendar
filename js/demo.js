@@ -32,7 +32,6 @@ export function demoEvents(now) {
     timed(0, 14, 0, 60, 'Appel fournisseur'),
     timed(0, 16, 30, 30, 'Point RH'),
     timed(1, 10, 0, 60, 'Revue de projet'),
-    allDay(2, 1, 'Congé'),
     timed(6, 11, 0, 60, 'Réunion client'),
     timed(6, 16, 0, 60, 'Point fournisseurs'),
     timed(9, 13, 0, 60, 'Visite du site'),

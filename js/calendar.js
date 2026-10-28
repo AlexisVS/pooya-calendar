@@ -51,11 +51,11 @@ export function buildMonthGrid(year, month, now) {
   return { year, month, weeks, start, end: addDays(start, weeks * 7), days };
 }
 
-// Règles de couleur : aujourd'hui, puis passé, puis futur avec événement, sinon neutre.
+// Règles de couleur : aujourd'hui, puis passé, puis futur avec événement (violet) ou libre (jaune).
 export function dayState(day, events) {
   if (day.isToday) return 'today';
   if (day.isPast) return 'past';
-  return events.length > 0 ? 'event' : 'empty';
+  return events.length > 0 ? 'event' : 'free';
 }
 
 // Dans une journée : journées entières d'abord, puis par heure de début.

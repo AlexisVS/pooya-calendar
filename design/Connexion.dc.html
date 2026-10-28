@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Calendrier de Pooya, première connexion</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&amp;family=Google+Sans+Text:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#0b57d0}a:hover{color:#0842a0}
+</style>
+</helmet>
+<div style="width: 1400px; height: 990px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: #f8fafd; color: #1f1f1f; font-family: 'Google Sans', Roboto, Arial, sans-serif">
+  <div style="width: 600px; box-sizing: border-box; padding: 56px 56px 48px; display: flex; flex-direction: column; gap: 28px; border-radius: 28px; background: #ffffff; box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15)">
+    <div aria-hidden="true" style="width: 64px; height: 64px; border-radius: 18px; background: {{accent}}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 500">28</div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <h1 style="margin: 0; font-size: 40px; font-weight: 400; line-height: 1.15">Calendrier de Pooya</h1>
+      <p style="margin: 0; font-family: 'Google Sans Text', Roboto, Arial, sans-serif; font-size: 19px; line-height: 1.55; color: #444746">Connectez le Google Agenda à afficher. Cette étape ne se fait qu'une fois : l'écran se met ensuite à jour tout seul, toutes les 5 minutes.</p>
+    </div>
+    <button type="button" style="align-self: flex-start; height: 56px; padding: 0 32px; border: 0; border-radius: 28px; background: {{accent}}; color: #ffffff; font-family: 'Google Sans', Roboto, Arial, sans-serif; font-size: 19px; font-weight: 500; cursor: pointer">Se connecter avec Google</button>
+    <p style="margin: 0; font-family: 'Google Sans Text', Roboto, Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #444746">Accès en lecture seule : l'application ne modifie rien dans l'agenda.</p>
+    <div style="padding-top: 24px; border-top: 1px solid #dadce0; display: flex; flex-direction: column; gap: 6px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 500">Écran sans tactile</h2>
+      <p style="margin: 0; font-family: 'Google Sans Text', Roboto, Arial, sans-serif; font-size: 16px; line-height: 1.55; color: #444746">Branchez un clavier et une souris le temps de la connexion, puis débranchez-les. La touche Entrée lance aussi la connexion.</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#188038","options":["#188038","#137333","#0b57d0"]},"$preview":{"width":1400,"height":990}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? "#188038" };
+  }
+}
+</script>
+</body>
+</html>

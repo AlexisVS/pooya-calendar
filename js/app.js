@@ -116,7 +116,9 @@ function dayHtml(day, events, maxChips) {
   const hidden = events.length - shown.length;
   const date = day.date;
   const label = date.getDate() === 1 ? `1 ${fmt.monthShort.format(date)}` : String(date.getDate());
-  const classes = ['day', `day--${kind}`, day.inMonth ? '' : 'day--outside'].filter(Boolean).join(' ');
+  const classes = ['day', `day--${kind}`, events.length ? 'day--busy' : '', day.inMonth ? '' : 'day--outside']
+    .filter(Boolean)
+    .join(' ');
 
   return `<div class="${classes}">
     <span class="day__num">${esc(label)}</span>

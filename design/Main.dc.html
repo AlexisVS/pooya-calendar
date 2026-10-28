@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Calendrier de Pooya, écran principal</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&amp;family=Google+Sans+Text:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#0b57d0}a:hover{color:#0842a0}
+</style>
+</helmet>
+<div style="width: 1400px; height: 990px; box-sizing: border-box; display: flex; flex-direction: column; background: #ffffff; color: #1f1f1f; font-family: 'Google Sans', Roboto, Arial, sans-serif; overflow: hidden">
+
+  <header style="height: 104px; flex-shrink: 0; box-sizing: border-box; padding: 0 32px 0 28px; display: flex; align-items: center; gap: 20px; border-bottom: 1px solid #dadce0">
+    <div aria-hidden="true" style="width: 52px; height: 52px; flex-shrink: 0; border-radius: 14px; background: {{todayBorder}}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 500">{{todayNum}}</div>
+    <nav aria-label="Navigation entre les mois" style="display: flex; align-items: center; gap: 4px; flex-shrink: 0">
+      <button type="button" style="height: 48px; margin-right: 12px; padding: 0 24px; border: 1px solid #747775; border-radius: 24px; background: #ffffff; color: #1f1f1f; font-family: 'Google Sans', Roboto, Arial, sans-serif; font-size: 16px; font-weight: 500; cursor: pointer">Aujourd'hui</button>
+      <button type="button" aria-label="Mois précédent" title="Mois précédent" style="width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #444746; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
+      <button type="button" aria-label="Mois suivant" title="Mois suivant" style="width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #444746; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></button>
+    </nav>
+    <h1 style="margin: 0; font-size: 44px; font-weight: 400; letter-spacing: -0.01em; line-height: 1">Octobre 2026</h1>
+    <div style="flex-grow: 1"></div>
+    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
+      <div style="font-size: 40px; font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums">13:42</div>
+      <div style="font-family: 'Google Sans Text', Roboto, Arial, sans-serif; font-size: 14px; color: #5f6368">Synchronisé à 13:40</div>
+    </div>
+  </header>
+
+  <main style="flex-grow: 1; min-height: 0; display: flex; flex-direction: column; padding: 0 24px 24px">
+    <div style="height: 48px; flex-shrink: 0; box-sizing: border-box; padding-bottom: 10px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); align-items: end">
+      <div style="text-align: center; font-size: 15px; font-weight: 500; letter-spacing: 0.06em; color: #444746">LUN.</div>
+      <div style="text-align: center; font-size: 15px; font-weight: 500; letter-spacing: 0.06em; color: #444746">MAR.</div>
+      <div style="text-align: center; font-size: 15px; font-weight: 500; letter-spacing: 0.06em; color: #444746">MER.</div>
+      <div style="text-align: center; font-size: 15px; font-weight: 500; letter-spacing: 0.06em; color: #444746">JEU.</div>
+      <div style="text-align: center; font-size: 15px; font-weight: 500; letter-spacing: 0.06em; color: #444746">VEN.</div>
+      <div style="text-align: center; font-size: 15px; font-weight: 500; letter-spacing: 0.06em; color: #444746">SAM.</div>
+      <div style="text-align: center; font-size: 15px; font-weight: 500; letter-spacing: 0.06em; color: #444746">DIM.</div>
+    </div>
+    <div style="flex-grow: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat(5, minmax(0, 1fr)); background: #ffffff; border: 2px solid #c4c7c5; border-radius: 12px; overflow: hidden">
+      <sc-for list="{{days}}" as="day" hint-placeholder-count="35">
+        <div style="min-width: 0; min-height: 0; box-sizing: border-box; padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 5px; overflow: hidden; border-right: {{day.br}}; border-bottom: {{day.bb}}; background: {{day.bg}}; box-shadow: {{day.ring}}">
+          <div style="align-self: center; min-width: 36px; height: 36px; padding: 0 8px; box-sizing: border-box; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: {{day.numWeight}}; color: {{day.numColor}}; background: {{day.numBg}}">{{day.label}}</div>
+          <sc-for list="{{day.events}}" as="ev" hint-placeholder-count="1">
+            <sc-if value="{{ev.allDay}}" hint-placeholder-val="{{false}}">
+              <div style="box-sizing: border-box; padding: 3px 8px; border-radius: 6px; background: {{ev.barBg}}; color: {{ev.barColor}}; font-family: 'Google Sans Text', Roboto, Arial, sans-serif; font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ev.title}}</div>
+            </sc-if>
+            <sc-if value="{{ev.timed}}" hint-placeholder-val="{{true}}">
+              <div style="display: flex; align-items: center; gap: 7px; min-width: 0; padding: 1px 4px; font-family: 'Google Sans Text', Roboto, Arial, sans-serif; font-size: 16px; white-space: nowrap">
+                <span style="width: 10px; height: 10px; flex-shrink: 0; border-radius: 50%; background: {{ev.color}}"></span>
+                <span style="flex-shrink: 0; color: {{ev.timeInk}}">{{ev.time}}</span>
+                <span style="min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; color: {{ev.ink}}">{{ev.title}}</span>
+              </div>
+            </sc-if>
+          </sc-for>
+          <sc-if value="{{day.hasMore}}" hint-placeholder-val="{{false}}">
+            <div style="padding: 0 4px; font-family: 'Google Sans Text', Roboto, Arial, sans-serif; font-size: 14px; font-weight: 500; color: #444746">{{day.moreLabel}}</div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </main>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"todayDay":{"editor":"int","default":28,"min":1,"max":31,"section":"Démo"},"todayBusyTint":{"editor":"color","default":"#e9d2fd","options":["#e9d2fd","#f3e8fd","#d7aefb"],"section":"Couleurs"},"busyTint":{"editor":"color","default":"#ffec80","options":["#ffec80","#ffe55c","#fff2a8"],"section":"Couleurs"},"todayBorder":{"editor":"color","default":"#188038","options":["#188038","#137333","#1e8e3e"],"section":"Couleurs"},"$preview":{"width":1400,"height":990}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var todayBorder = this.props.todayBorder ?? "#188038";
+    var busyTint = this.props.busyTint ?? "#ffec80";
+    var todayBusyTint = this.props.todayBusyTint ?? "#e9d2fd";
+    var todayNum = Math.min(31, Math.max(1, this.props.todayDay ?? 28));
+    var MAX_CHIPS = 3;
+
+    var EVENTS = {
+      "2026-09-28": [{ time: "09:30", title: "Point équipe" }],
+      "2026-10-01": [{ time: "14:00", title: "Formation sécurité" }],
+      "2026-10-05": [{ time: "09:30", title: "Point équipe" }],
+      "2026-10-07": [{ time: "11:00", title: "Réunion client" }],
+      "2026-10-12": [{ time: "09:30", title: "Point équipe" }, { time: "15:00", title: "Revue budget" }],
+      "2026-10-15": [{ time: "12:30", title: "Déjeuner d'équipe" }],
+      "2026-10-19": [{ time: "09:30", title: "Point équipe" }],
+      "2026-10-20": [{ allDay: true, title: "Salon professionnel" }],
+      "2026-10-21": [{ allDay: true, title: "Salon professionnel" }],
+      "2026-10-26": [{ time: "09:30", title: "Point équipe" }],
+      "2026-10-28": [{ time: "09:30", title: "Point équipe" }, { time: "14:00", title: "Appel fournisseur" }],
+      "2026-10-29": [{ time: "10:00", title: "Revue de projet" }]
+    };
+
+    var MONTHS_SHORT = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+
+    function pad(n) { return String(n).padStart(2, "0"); }
+    function key(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+
+    var today = new Date(2026, 9, todayNum);
+    var todayKey = key(today);
+
+    var days = [];
+    for (var i = 0; i < 35; i++) {
+      var d = new Date(2026, 8, 28 + i);
+      var k = key(d);
+      var evs = EVENTS[k] || [];
+      var isToday = k === todayKey;
+      var state = isToday ? "today" : d < today ? "past" : evs.length ? "event" : "free";
+      var inMonth = d.getMonth() === 9;
+      var dot = state === "today" ? "#b3261e" : state === "event" ? "#9334e6" : "#188038";
+      var barBg = state === "today" ? "#b3261e" : state === "event" ? "#9334e6" : "#ceead6";
+      var barColor = state === "past" ? "#0d652d" : "#ffffff";
+      var ink = state === "today" ? "#b3261e" : "#1f1f1f";
+      var timeInk = state === "today" ? "#b3261e" : "#444746";
+      days.push({
+        label: d.getDate() === 1 ? "1 " + MONTHS_SHORT[d.getMonth()] : String(d.getDate()),
+        bg: !evs.length ? "#ffffff" : isToday ? todayBusyTint : busyTint,
+        ring: isToday ? "inset 0 0 0 3px " + todayBorder : "none",
+        br: i % 7 === 6 ? "0" : "2px solid #c4c7c5",
+        bb: i >= 28 ? "0" : "2px solid #c4c7c5",
+        numBg: isToday ? todayBorder : "transparent",
+        numColor: isToday ? "#ffffff" : !inMonth ? "#5f6368" : state === "past" ? "#137333" : "#1f1f1f",
+        numWeight: isToday ? 700 : 500,
+        events: evs.slice(0, MAX_CHIPS).map(function (e) {
+          return { title: e.title, time: e.time, allDay: !!e.allDay, timed: !e.allDay, color: dot, barBg: barBg, barColor: barColor, ink: ink, timeInk: timeInk };
+        }),
+        hasMore: evs.length > MAX_CHIPS,
+        moreLabel: "+" + (evs.length - MAX_CHIPS) + (evs.length - MAX_CHIPS > 1 ? " autres" : " autre")
+      });
+    }
+
+    return {
+      todayBorder: todayBorder,
+      todayNum: String(todayNum),
+      days: days
+    };
+  }
+}
+</script>
+</body>
+</html>
